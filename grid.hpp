@@ -18,6 +18,7 @@ public:
     // Clear the board and add 2 numbers
     grid();
 
+    grid(grid &g);
     // Sets all values to 0
     void reset();
 

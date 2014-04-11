@@ -11,7 +11,18 @@ grid::grid()
     reset();
     init(initial_slot_count);
 }
-
+grid::grid(grid &g)
+{
+    for(int x = 0; x < grid_size; ++x)
+    {
+        for(int y = 0; y < grid_size; ++y)
+        {
+            m_grid[y][x] = g.get(y, x);
+        }
+    }
+    m_score = g.score();
+    add_actions(g.actions());
+}
 // Sets all values to 0
 void grid::reset()
 {
