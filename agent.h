@@ -8,11 +8,19 @@ using namespace std;
 class  agent{
 	public:
 		agent();
-		agent(agent &a);
+		agent(const agent &a);
+		void print() const;
 		direction chooseDirection(grid &g);
+		double compMaxTileCrit(grid g);
+		double compMaxSumCrit(grid g);
+		double compNbTileCrit(grid g);
+		void normalize();
 
-	private:
-		vector<double> chromo_;
+//	private:
+		//vector<double> chromo_;
+		double critTotalsum_;
+		double critMaxTile_;
+		double critnbTile_;
 };
 
 #endif //_AGENT_H_

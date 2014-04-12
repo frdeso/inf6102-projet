@@ -11,18 +11,20 @@ grid::grid()
     reset();
     init(initial_slot_count);
 }
-grid::grid(grid &g)
+
+grid::grid(const grid &g)
 {
     for(int x = 0; x < grid_size; ++x)
     {
         for(int y = 0; y < grid_size; ++y)
         {
-            m_grid[y][x] = g.get(y, x);
+            m_grid[y][x] = g.get(x, y);
         }
     }
     m_score = g.score();
-    add_actions(g.actions());
+    //m_actions = g.actions();
 }
+
 // Sets all values to 0
 void grid::reset()
 {
@@ -166,7 +168,7 @@ bool grid::has_empty() const
 }
 
 // Get the value from x,y
-inline int grid::get(const int& x, const int& y) const
+int grid::get(const int& x, const int& y) const
 {
     if(is_outside(x, y))
     {

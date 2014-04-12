@@ -18,7 +18,9 @@ public:
     // Clear the board and add 2 numbers
     grid();
 
-    grid(grid &g);
+    // Copy constructor
+    grid(const grid &g);
+
     // Sets all values to 0
     void reset();
 
@@ -37,7 +39,7 @@ public:
     bool has_empty() const;
 
     // Get the value from x,y
-    inline int get(const int& x, const int& y) const;
+    int get(const int& x, const int& y) const;
     
     // Set a value to x,y
     void set(const int& x, const int& y, const int value);
