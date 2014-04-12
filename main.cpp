@@ -45,8 +45,8 @@ individual mutation(individual i)
 int main()
 {
     const int nbGeneration = 10000;
-    const int nbRunPerIndi = 3;
-    const int nbIndividual = 15;
+    const int nbRunPerIndi = 8;
+    const int nbIndividual = 20;
     const int nbParent = 2;
     
     //vector<individual> population;
@@ -93,14 +93,17 @@ int main()
         set<individual>::iterator iter = generationScore.begin();
         for (int i = 0; i < nbParent; ++i)
         {
-            parents.push_back(*(iter++));
+            parents.push_back(*(iter));
+            parents.push_back(mutation(*(iter)));
+            //parents.push_back(mutation(*(iter)));
+            iter++;
         }
         population.clear();
 
         population =  vector<individual>(parents);
         for(int i = 0; population.size() < nbIndividual ;++i )
         {
-            population.push_back(mutation(crossing(parents)));
+            population.push_back(crossing(parents));
             //mutation
         }
     }

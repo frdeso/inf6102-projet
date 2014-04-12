@@ -17,7 +17,7 @@ class  agent{
 		void normalize();
 
 //	private:
-		//vector<double> chromo_;
+		vector<double> crits_;
 		double critTotalsum_;
 		double critMaxTile_;
 		double critnbTile_;
