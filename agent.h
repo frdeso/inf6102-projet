@@ -14,13 +14,16 @@ class  agent{
 		double compMaxTileCrit(grid g);
 		double compMaxSumCrit(grid g);
 		double compNbTileCrit(grid g);
+		double compHoriMonoto(grid g);
+		double compVertMonoto(grid g);
 		void normalize();
+		std::vector<double> getCriterion();
 
-//	private:
+	private:
 		vector<double> crits_;
-		double critTotalsum_;
-		double critMaxTile_;
-		double critnbTile_;
+		//double critTotalsum_;
+		//double critMaxTile_;
+		//double critnbTile_;
 };
 
 #endif //_AGENT_H_

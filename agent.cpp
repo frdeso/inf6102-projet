@@ -1,40 +1,45 @@
 #include "agent.h"
 #include <assert.h>
 #include <iostream>
+#include <iomanip> 
 #include <utility>
 
 #define MAX_TILE 0
 #define NB_TILE 1
 #define TOTAL_SUM 2
+#define HORI_MONO  3
+#define VERT_MONO 4
 
 agent::agent(){
-	std::mt19937& r =  rand_gen();
-	/*critMaxTile_ = r()/(double)(r.max()+1);
-	critTotalsum_ = r()/(double)(r.max()+1);
-	critnbTile_ = r()/(double)(r.max()+1);
-*/	crits_.resize(3);
-	crits_[MAX_TILE] = r()/(double)(r.max()+1);
-	crits_[NB_TILE] = r()/(double)(r.max()+1);
-	crits_[TOTAL_SUM] = r()/(double)(r.max()+1);
+	crits_.resize(5);
+	for(auto &i : crits_)
+	{
+		i = (double)rand()/(double)(RAND_MAX);
+	}
 	normalize();
 }
 
 agent::agent(const agent &a){
-	/*critMaxTile_ = a.critMaxTile_;
-	critTotalsum_ = a.critTotalsum_;
-	critnbTile_ = a.critnbTile_;
-*/
-	crits_.resize(3);
+
+	crits_.resize(5);
 	crits_[MAX_TILE] = a.crits_[MAX_TILE];
 	crits_[NB_TILE] = a.crits_[NB_TILE];
 	crits_[TOTAL_SUM] = a.crits_[TOTAL_SUM];
+	crits_[HORI_MONO] = a.crits_[HORI_MONO];
+	crits_[VERT_MONO] = a.crits_[VERT_MONO];
+}
+
+std::vector<double> agent::getCriterion(){
+	return crits_;
 }
 void agent::print() const
 {
 	cout<<"|";
-	cout<<crits_[MAX_TILE]<<"|";
-	cout<<crits_[NB_TILE]<<"|";
-	cout<<crits_[TOTAL_SUM]<<"|"<<endl;
+	for(auto i : crits_)
+	{
+		cout<<setprecision(3)<<i<< " " ;
+	}
+	cout<<"|"<<endl;
 }
 direction agent::chooseDirection(grid &g){
 	vector<pair<grid, int> > possibleOutcomes; // std::pair n'a pas de compare < et > trouver solution
@@ -74,15 +79,22 @@ direction agent::chooseDirection(grid &g){
 			break;
 		}
 	}
-
-	int largest = 1, i = 0;
-	int score = 0;
+	
+	double largest = 0;
+	double score = 0;
 	for(pair<grid, int> iter : possibleOutcomes)
 	{
+		if (iter.second == -1)
+		{
+			continue;
+		}
+
 		score = compMaxTileCrit(iter.first)
 				+ compMaxSumCrit(iter.first)
+				+ compHoriMonoto(iter.first)
+				+ compVertMonoto(iter.first)
 				+ compNbTileCrit(iter.first);
-		if (score > largest && iter.second != -1)
+		if (score > largest)
 		{
 			largest = score ;
 			bestMove = (direction) iter.second;
@@ -93,7 +105,7 @@ direction agent::chooseDirection(grid &g){
 
 double agent::compMaxTileCrit(grid g)
 {
-	return crits_[MAX_TILE]*g.largest();
+	return crits_[MAX_TILE]*(double)g.largest();
 }
 
 double agent::compMaxSumCrit(grid g)
@@ -124,8 +136,84 @@ double agent::compNbTileCrit(grid g)
         	}
         }
     }
-    return crits_[NB_TILE] *( 16 - nb);
+    return crits_[NB_TILE] *(double)( 16 - nb);
 }
+double agent::compHoriMonoto(grid g)
+{
+
+	uint nbSwitch = 0;
+	//g.print();
+	for (int j = 0; j < g.size(); ++j)
+    {
+		bool isIncreasing = false;
+		uint nbComp = 0;
+        for (int i = 0; i < g.size()-1; ++i)
+        {
+        	// if both number are the same it's okay
+        	//cout<< g.get(i,j)<<","<<g.get(i+1,j)<<endl;
+        	if (g.get(i,j) == g.get(i+1,j)) 
+			{
+				continue;
+			}
+
+			if( nbComp < 1 )
+			{
+				isIncreasing = g.get(i,j) < g.get(i+1,j);
+			}
+			else
+			{
+				bool isIncreasingTmp = g.get(i,j) < g.get(i+1,j);
+				if(isIncreasingTmp != isIncreasing )
+				{
+					isIncreasing = isIncreasingTmp;
+					nbSwitch++;
+				}
+			}
+			nbComp++;
+		}
+	}
+	return crits_[HORI_MONO] * (double)(12-nbSwitch);
+}
+double agent::compVertMonoto(grid g)
+{
+
+	uint nbSwitch = 0;
+	//g.print();
+	
+    for (int i = 0; i < g.size(); ++i)
+    {
+		bool isIncreasing = false;
+		uint nbComp = 0;
+		for (int j = 0; j < g.size()-1; ++j)
+        {
+        	// if both number are the same it's okay
+        	//cout<< g.get(i,j)<<","<<g.get(i,j+1)<<endl;
+        	int first = g.get(i,j), second =g.get(i,j+1);
+        	if (first == second) 
+			{
+				continue;
+			}
+
+			if( nbComp < 1 )
+			{
+				isIncreasing = first < second;
+			}
+			else
+			{
+				bool isIncreasingTmp = first < second;
+				if(isIncreasingTmp != isIncreasing )
+				{
+					isIncreasing = isIncreasingTmp;
+					nbSwitch++;
+				}
+			}
+			nbComp++;
+		}
+	}
+	return crits_[VERT_MONO] * (double)(12-nbSwitch);
+}
+
+
 void agent::normalize()
 {
 	double sum = 0;
