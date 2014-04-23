@@ -16,9 +16,21 @@ struct indi_sorter{
         return l.second == r.second ? &l < &r : l.second > r.second;
     }
 };
+individual crossing(individual &p1, individual &p2)
+{
+    individual offspring;
 
 
-individual crossing(vector<individual> &parents)
+    for(int i = 0; i < offspring.first.getCriterion().size(); ++i)
+    {
+        offspring.first.getCriterion()[i] =  (p1.first.getCriterion()[i] + p2.first.getCriterion()[i])/2;
+    }
+    offspring.second = 0;
+
+    return offspring;
+}
+
+individual crossingAllparents(vector<individual> &parents)
 {
     individual offspring;
 
@@ -39,12 +51,13 @@ double getRandPercentage()
 individual mutation(individual i)
 {
     individual mutant;
-    double chiffre = 100000;
-    for(int j = 0; j < mutant.first.getCriterion().size(); ++j)
+    double chiffre = 10.0;
+    //for(int j = 0; j < mutant.first.getCriterion().size(); ++j)
     {
-        double sign = ((rand()%3) -1);
-        mutant.first.getCriterion()[j] = 
-                    i.first.getCriterion()[j] + ((double)sign)*(i.first.getCriterion()[j] * getRandPercentage())/chiffre;
+	int j = rand()%mutant.first.getCriterion().size();
+    double sign = ((rand()%3) -1);
+    mutant.first.getCriterion()[j] = 
+               i.first.getCriterion()[j] + ((double)sign)*(i.first.getCriterion()[j] * getRandPercentage())/chiffre;
     }
 
     mutant.second = 0;
@@ -56,10 +69,13 @@ individual mutation(individual i)
 
 int main()
 {
+	srand(time(0));
     const int nbGeneration = 10000;
-    const int nbRunPerIndi = 5;
-    const int nbIndividual = 100;
-    const int nbParent = nbIndividual*0.10;
+    const int nbRunPerIndi = 20;
+    const int nbIndividual = 4;
+    const int nbParent = nbIndividual-1;
+	int lastPrint = 0;
+	int sum = 0;
 
     cout<<"Nombre de generation:"<<nbGeneration<<endl;
     cout<<"Nombre d'essais par individu:"<<nbRunPerIndi<<endl;
@@ -83,6 +99,7 @@ int main()
         //Pour chaque individu dans la population courante
         for(auto& indi: population)
         {
+			indi.second = 0.0;
             // Nombre d'essais par individu au cours d'une generation
             // pour faire la moyenne
             for(int k = 0; k < nbRunPerIndi; ++k)
@@ -93,7 +110,14 @@ int main()
                     direction d = indi.first.chooseDirection(g);
                     g.action(d);
                 }
+				if (g.largest() >= 2048)
+				{
+					cout<<j<<"\t"<<g.score()<<"\t";
+					indi.first.print();
+				//	g.print();
+				}
                 indi.second += g.score();
+			//	cout<<"\t"<<g.score()<<endl;
 				//g.print();
             }
             //On fait la moyenne des scores
@@ -101,10 +125,11 @@ int main()
             generationScore.insert(indi);
         }
 
-        if(j % 2 == 0) 
+        if(j % 1 == 1) 
         {
             //cout<<"Generation #"<<j<<endl;
-            cout<<generationScore.begin()->second<<"\t"<<j<< "\t";
+            cout<<generationScore.begin()->second<<"\t"<<(int)generationScore.begin()->second - lastPrint<<"\t"<<j<< "\t";
+			lastPrint = generationScore.begin()->second;
             generationScore.begin()->first.print();
             // for(auto i: generationScore)
             // {
@@ -117,8 +142,8 @@ int main()
         for (int i = 0; i < nbParent; ++i)
         {
             parents.push_back(*(iter));
-            parents.push_back(mutation(*(iter)));
-            parents.push_back(mutation(*(iter)));
+//            parents.push_back(mutation(*(iter)));
+//            parents.push_back(mutation(*(iter)));
             iter++;
         }
         population.clear();
@@ -126,7 +151,8 @@ int main()
         population =  vector<individual>(parents);
         for(int i = 0; population.size() < nbIndividual ;++i )
         {
-            population.push_back(crossing(parents));
+			uint parentSize = parents.size();
+            population.push_back(mutation(crossing(parents[rand()%parentSize],parents[rand()%parentSize])));
             //mutation
         }
     }
