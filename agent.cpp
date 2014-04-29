@@ -1,4 +1,5 @@
 #include "agent.h"
+#include <fstream>
 #include <assert.h>
 #include <iostream>
 #include <iomanip>
@@ -10,10 +11,11 @@
 #define TOTAL_SUM 2
 #define HORI_MONO  3
 #define VERT_MONO 4
+#define CORNER 5
 
 #define NEW true
 agent::agent(){
-	crits_.resize(5);
+	crits_.resize(6);
 	for(auto &i : crits_)
 	{
 		i = (double)rand()/(double)(RAND_MAX);
@@ -23,12 +25,13 @@ agent::agent(){
 
 agent::agent(const agent &a){
 
-	crits_.resize(5);
+	crits_.resize(6);
 	crits_[MAX_TILE] = a.crits_[MAX_TILE];
 	crits_[NB_TILE] = a.crits_[NB_TILE];
 	crits_[TOTAL_SUM] = a.crits_[TOTAL_SUM];
 	crits_[HORI_MONO] = a.crits_[HORI_MONO];
 	crits_[VERT_MONO] = a.crits_[VERT_MONO];
+	crits_[CORNER] = a.crits_[CORNER];
 }
 
 std::vector<double> agent::getCriterion(){
@@ -36,40 +39,62 @@ std::vector<double> agent::getCriterion(){
 }
 void agent::print() const
 {
-	cout<<"| ";
+	cout<<"";
 	for(auto i : crits_)
 	{
 		cout<<std::fixed;
-		cout<<setprecision(3)<<i<< " " ;
+		cout<<setprecision(3)<<i<< "\t" ;
 	}
-	cout<<"|"<<endl;
 }
-direction agent::chooseDirection(grid &g){
-	vector<pair<grid, int> > possibleOutcomes; // std::pair n'a pas de compare < et > trouver solution
+
+ostream& operator<<(ostream &out,  const agent &agent)
+{
+	out<<"| ";
+	for(auto i : agent.crits_)
+	{
+		out<<std::fixed;
+		out<<setprecision(5)<<i<< " " ;
+	}
+	out<<"|";
+	return out;
+}
+
+ifstream& operator>>(ifstream &in,  agent &agent)
+{
+	for (auto &i : agent.crits_)
+	{
+		in >> i;
+	}
+	return in;
+}
+
+direction agent::chooseDirection(grid g){
+	vector<pair<grid, double> > possibleOutcomes; // std::pair n'a pas de compare < et > trouver solution
 
 	//Create one copy for each possible moves
-	for (int i = 0; i < 30; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
 		grid n = grid(g);
 		grid s = grid(g);
 		grid w = grid(g);
 		grid e = grid(g);
-	
-		possibleOutcomes.push_back(make_pair (n, (int)direction::NORTH));
-		possibleOutcomes.push_back(make_pair (s, (int)direction::SOUTH));
-		possibleOutcomes.push_back(make_pair (e, (int)direction::EAST));
-		possibleOutcomes.push_back(make_pair (w, (int)direction::WEST));
+
+
+		possibleOutcomes.push_back(make_pair (n, (double)direction::NORTH));
+		possibleOutcomes.push_back(make_pair (s, (double)direction::SOUTH));
+		possibleOutcomes.push_back(make_pair (e, (double)direction::EAST));
+		possibleOutcomes.push_back(make_pair (w, (double)direction::WEST));
 	}
 	/*
 		On verifie que des mouvements sont possibles dans les differentes directtions.
 	*/
-	for(pair<grid, int> &iter : possibleOutcomes)
+	for(auto &iter : possibleOutcomes)
 	{	
 		bool canmove = iter.first.action((direction)iter.second);
 
 		if(!canmove)
 		{
-			iter.second = -1;
+			iter.second = -1.0;
 		}
 	}
 
@@ -77,9 +102,9 @@ direction agent::chooseDirection(grid &g){
 	totalScore.resize(4);
 	direction bestMove = direction::SOUTH;
 
-	for(pair<grid, int> &iter : possibleOutcomes)
+	for(auto &iter : possibleOutcomes)
 	{
-		if(iter.second != -1)
+		if(iter.second != -1.0)
 		{
 			bestMove = (direction) iter.second;
 			break;
@@ -88,30 +113,32 @@ direction agent::chooseDirection(grid &g){
 	
 	double largest = 0;
 	double score = 0;
+//	int reseed = print_current_time_with_ns();
 	for(pair<grid, int> iter : possibleOutcomes)
 	{
-		if (iter.second == -1)
+		if (iter.second == -1.0)
 		{
 			continue;
 		}
-
+//		srand(reseed);
 	
 
-		score = compMaxTileCrit(iter.first)
+		score =	compMaxTileCrit(iter.first)
 				+ compMaxSumCrit(iter.first)
 				+ compHoriMonoto(iter.first)
 				+ compVertMonoto(iter.first)
+				+ compCorner(iter.first)
 				+ compNbTileCrit(iter.first);
 
 		//On tente d'eviter les mouvements vers le haut.
 		if((direction)iter.second == direction::NORTH)
 		{
-			score *= 1.0;
+			score *= 0.8;
 		}
 		totalScore[iter.second] += score;
 	}
 	
-	for(int i = 0; i < totalScore.size();++i)
+	for(unsigned int i = 0; i < totalScore.size();++i)
 	{
 		score = totalScore[i];
 		if (score > largest)
@@ -120,14 +147,15 @@ direction agent::chooseDirection(grid &g){
 			bestMove = (direction) i;
 		}
 	}
-
+//	srand(reseed);
 	return bestMove;
 }
 
 double agent::compMaxTileCrit(grid g)
 {
 #if NEW
-	return crits_[MAX_TILE]*(double)((log2(g.largest())/11.0));
+	//return crits_[MAX_TILE]*(double)((log2(g.largest())/11.0));
+	return crits_[MAX_TILE]*(double)((double)g.largest()/4096.0);
 #else
 	return crits_[MAX_TILE]*(double)(g.largest());
 #endif
@@ -145,7 +173,7 @@ double agent::compMaxSumCrit(grid g)
         }
     }
 #if NEW
-	return crits_[TOTAL_SUM]*(double)((sum/4096.0));
+	return crits_[TOTAL_SUM]*(double)((sum/8192.0));
 #else
 	return crits_[TOTAL_SUM]*(double)sum;
 #endif
@@ -254,6 +282,17 @@ double agent::compVertMonoto(grid g)
 #endif
 }
 
+double agent::compCorner(grid g)
+{
+	int largest = g.largest();
+	double result = 0.0;
+	if (g.get(0,0) == largest) result = 1.0;
+	else if (g.get(0,g.size()-1) == largest) result = 1.0;
+	else if (g.get(g.size()-1,0) == largest) result = 1.0;
+	else if (g.get(g.size()-1,g.size()-1) == largest) result = 1.0;
+
+	return crits_[CORNER] * result;
+}
 
 void agent::normalize()
 {

@@ -10,20 +10,20 @@ class  agent{
 		agent();
 		agent(const agent &a);
 		void print() const;
-		direction chooseDirection(grid &g);
+		friend ostream& operator<< (ostream &out, const agent &agent);
+		friend ifstream& operator>> (ifstream &in, agent &agent);
+		direction chooseDirection(grid g);
 		double compMaxTileCrit(grid g);
 		double compMaxSumCrit(grid g);
 		double compNbTileCrit(grid g);
 		double compHoriMonoto(grid g);
 		double compVertMonoto(grid g);
+		double compCorner(grid g);
 		void normalize();
 		std::vector<double> getCriterion();
 
 	private:
 		vector<double> crits_;
-		//double critTotalsum_;
-		//double critMaxTile_;
-		//double critnbTile_;
-};
+	};
 
 #endif //_AGENT_H_

@@ -9,6 +9,7 @@
 static const int grid_size = 4;
 
 // Seed
+//static const auto seed = time(NULL);
 static const auto seed = std::chrono::system_clock::now().time_since_epoch().count();
 
 // What value to set the first tile as
@@ -36,6 +37,9 @@ static const int action_count = 4;
 
 // Mersenne twister random generator
 std::mt19937& rand_gen();
+
+long int  print_current_time_with_ns();
+
 
 // Gives a random position from [0, grid_size)
 int rand_pos();

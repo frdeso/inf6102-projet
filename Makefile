@@ -1,4 +1,4 @@
-CFLAGS= -std=c++11 -O2 
+CFLAGS= -std=c++11 -O2 -Wall 
 all: main.cpp grid.o utils.o agent.o
 	g++ $(CFLAGS) main.cpp grid.o utils.o agent.o -o projet
 agent.o: agent.h agent.cpp
