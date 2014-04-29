@@ -1,0 +1,10 @@
+#Pour executer l'algorithme génétique avec 10 individus et 1 enfant pendant 200 générations
+
+./projet
+
+#Pour executer un individu en particulier pendant 10000 iterations
+#	Il faut ajouter les alleles dans le fichier agent.txt
+#	ex: 0.136 0.283 0.157 0.040 0.197 0.187
+./projet 1
+
+# le dossier resultats contient les executions des utilisées pour faire tableau 4.1 du rapport.

@@ -26,7 +26,7 @@ double getRandomDoubleBetween(double a, double b)
 	double r = random * diff;
 	return a + r;
 }
-
+//Retourne une individul croise a partir de deux parents
 individual crossing( individual &p1, individual &p2)
 {
     individual offspring;
@@ -34,7 +34,6 @@ individual crossing( individual &p1, individual &p2)
 
     for(uint i = 0; i < offspring.first.getCriterion().size(); ++i)
     {
-        //offspring.first.getCriterion()[i] = (p1.first.getCriterion()[i], p2.first.getCriterion()[i])/2.0;
 		double a = min(p1.first.getCriterion()[i], p2.first.getCriterion()[i]);
 		double b = max(p1.first.getCriterion()[i], p2.first.getCriterion()[i]);
         offspring.first.getCriterion()[i] =  getRandomDoubleBetween(a, b);
@@ -45,24 +44,11 @@ individual crossing( individual &p1, individual &p2)
     return offspring;
 }
 
-//individual crossingAllparents(vector<individual> &parents)
-//{
-//    individual offspring;
-//
-//
-//    for(uint i = 0; i < offspring.first.getCriterion().size(); ++i)
-//    {
-//        offspring.first.getCriterion()[i] = parents[rand()%parents.size()].first.getCriterion()[i];
-//    }
-//    offspring.second = 0;
-//
-//    return offspring;
-//}
 double getRandPercentage()
 {
     return (double)rand()/(double)RAND_MAX;
 }
-
+//Applique une mutation
 individual mutation(individual i)
 {
     individual mutant;
@@ -78,7 +64,7 @@ individual mutation(individual i)
 
     return mutant;
 }
-
+//Execute un agent sur 1000 parties
 void specificAgent(agent &a)
 {
 	int nb = 0;
@@ -102,7 +88,7 @@ void specificAgent(agent &a)
 	}
 	return;
 }
-
+//Imprime la population
 void printPopulation(set<individual,indi_sorter> &pop)
 {
 	cout<<"population "<<nb2048<<endl;
@@ -111,9 +97,7 @@ void printPopulation(set<individual,indi_sorter> &pop)
 		cout<<i.first<<" "<<(int)i.second<<endl;
 	}
 }
-
-
-
+//Calcul du fitness
 void fitness(individual &indi, int nbRunPerIndi)
 {
 
@@ -140,12 +124,11 @@ void fitness(individual &indi, int nbRunPerIndi)
 	}
 }
 
-
 int main(int argc, char* argv[] )
 {
 
 	srand(time(0));
-    
+   //S'il y a plus d'un argument c'est qu'on veut rouler un agent en particulier 
 	if(argc > 1)
 	{
 		ifstream f("agent.txt");
@@ -158,12 +141,13 @@ int main(int argc, char* argv[] )
 		
 		const int nbGeneration = 200;
 	    const int nbRunPerIndi = 10;
-	    const int nbIndividual = 20;
-	    const int nbOffspring = 3;
+	    const int nbIndividual = 10;
+	    const int nbOffspring = 1;
 	    
 		cout<<"Nombre de generation:"<<nbGeneration<<endl;
 	    cout<<"Nombre d'essais par individu:"<<nbRunPerIndi<<endl;
 	    cout<<"Nombre d'individu:"<<nbIndividual<<endl;
+	    cout<<"Nombre d'enfant:"<<nbOffspring<<endl;
 	    
 	    //vector<individual> population;
 	    vector<individual> population;
@@ -181,15 +165,9 @@ int main(int argc, char* argv[] )
 	        for(auto& indi: population)
 	        {
 				fitness(indi, nbRunPerIndi);
-				//srand(print_current_time_with_ns());
 				generationScore.insert(indi);
 	        }
 
-			if(j % 50 == 0)
-			{
-				//printPopulation(generationScore);
-			//	nb2048 = 0;
-			}
 	        if(j % 1 == 0 && true) 
 	        {
 	            cout<<j<<"\t"<<(int)generationScore.begin()->second/nbRunPerIndi <<"\t";
@@ -198,6 +176,8 @@ int main(int argc, char* argv[] )
 	        }
 			
 			set<individual>::iterator iter = generationScore.begin();
+
+			//On cree un nombre d'enfant
 			for (int i = 0; i < nbOffspring; ++i)
 			{
 				iter = generationScore.begin();
@@ -208,19 +188,14 @@ int main(int argc, char* argv[] )
 				std::advance(iter, rand()%generationScore.size());
 				individual p2 =  *iter;
 
-				//individual offspring = mutation(crossing(p1,p2));
 				individual offspring1 = mutation(crossing(p1,p2));
-				//individual offspring2 = mutation(p2);
-				//fitness(offspring, nbRunPerIndi);
 				fitness(offspring1, nbRunPerIndi);
-				//fitness(offspring2, nbRunPerIndi);
-				//generationScore.insert(offspring);
 				generationScore.insert(offspring1);
-				//generationScore.insert(offspring2);
 			}
 			
 			vector<individual> parents;
 	        iter = generationScore.begin();
+			//On selectionne seulement les meilleurs
 	        for (int i = 0; i < nbIndividual; ++i)
 	        {
 	            parents.push_back(*(iter));
